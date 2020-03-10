@@ -6,7 +6,7 @@ import HomePage from './pages/homepage/homepage.component';
 import ShopPage from './pages/shop/shop.component.jsx';
 import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component.jsx';
 import Header from './components/header/header.component.jsx'
-import { auth } from './firebase/firebase.utils';
+import { auth, createUserProfileDocument } from './firebase/firebase.utils';
 
 
 class App extends React.Component {
@@ -21,8 +21,30 @@ class App extends React.Component {
   unsubscribeFromAuth = null; 
 
   componentDidMount() {
-   this.unsubscribeFromAuth =  auth.onAuthStateChanged(user => {
-      this.setState({ currentUser: user});
+   this.unsubscribeFromAuth =  auth.onAuthStateChanged(async userAuth => {
+     if (userAuth) {
+       //we make sure we are passing back the userRef object
+       //checking to see if snapshot has changed
+       const userRef = await createUserProfileDocument(userAuth);
+
+//subscribe-or listen to userRef
+       userRef.onSnapshot(snapShot => {
+          // console.log(snapShot.data());
+          //don't just LOG snapShot, we need to extract exact DATA. listed below
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+              ...snapShot.data()
+            }
+          });
+          console.log(this.state);
+       });
+
+     }
+     else {
+       this.setState({currentUser: userAuth})
+     };
+     //^^equivalent to null. we need this just in case user logs out
     })
   }
 
