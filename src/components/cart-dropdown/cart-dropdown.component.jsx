@@ -28,8 +28,8 @@ const CartDropdown = ({ cartItems, history, dispatch }) => (
          dispatch(toggleCartHidden());
          //dispatch is the only way to trigger a state change since components will never be able to access the store directly
         }}>
-         GO TO CHECKOUT
-        }</CustomButton>
+         GO TO CHECKOUT 
+         </CustomButton>
     </div>
 )
 
