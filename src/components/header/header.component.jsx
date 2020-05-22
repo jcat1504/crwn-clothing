@@ -10,31 +10,33 @@ import CartDropdown from '../cart-dropdown/cart-dropdown.component';
 import { selectCartHidden } from '../../redux/cart/cart.selectors';
 import { selectCurrentUser } from '../../redux/user/user.selectors';
 
+import { HeaderContainer, LogoContainer, OptionsContainer, OptionDiv, OptionLink } from './header.styles';
+
 const Header = ({ currentUser, hidden }) => (
-  <div className='header'>
-    <Link className='logo-container' to='/'>
+  <HeaderContainer>
+    <LogoContainer to='/'>
       <Logo className='logo' />
-    </Link>
-    <div className='options'>
-      <Link className='option' to='/shop'>
+    </LogoContainer>
+    <OptionsContainer>
+      <OptionLink to='/shop'>
         SHOP
-      </Link>
-      <Link className='option' to='/shop'>
+      </OptionLink>
+      <OptionLink to='/shop'>
         CONTACT
-      </Link>
+      </OptionLink>
       {
         currentUser ?
-        <div className='option' onClick={() => auth.signOut()}>SIGN OUT</div>
+        <OptionDiv onClick={() => auth.signOut()}>SIGN OUT</OptionDiv>
         :(
-        <Link className='option' to='/signin'>SIGN IN</Link>
+        <OptionLink as='div' to='/signin'>SIGN IN</OptionLink>
         )}
         <CartIcon />
-    </div>
+    </OptionsContainer>
     {
       hidden ? null :
     <CartDropdown />
     }
-  </div>
+  </HeaderContainer>
 ); 
 
 //destructuring. you are grabbing the nested value which is currentUser from
