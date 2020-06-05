@@ -1,81 +1,85 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import { Switch, Route, Redirect } from 'react-router-dom';
+import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
 import './App.css';
 
 import HomePage from './pages/homepage/homepage.component';
-import ShopPage from './pages/shop/shop.component.jsx';
+import ShopPage from './pages/shop/shop.component';
 import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
-import Header from './components/header/header.component'
 import CheckoutPage from './pages/checkout/checkout.component';
 
-import { auth, createUserProfileDocument } from './firebase/firebase.utils';
-import { setCurrentUser } from './redux/user/user.actions'
-import { selectCurrentUser } from './redux/user/user.selectors';
+import Header from './components/header/header.component';
 
+import { auth, createUserProfileDocument, addCollectionAndDocuments } from './firebase/firebase.utils';
+
+import { setCurrentUser } from './redux/user/user.actions';
+import { selectCurrentUser } from './redux/user/user.selectors';
+import { selectCollectionsForPreview } from './redux/shop/shop.selectors';
 class App extends React.Component {
-  unsubscribeFromAuth = null; 
+  unsubscribeFromAuth = null;
 
   componentDidMount() {
-    const {setCurrentUser} = this.props;
-   this.unsubscribeFromAuth =  auth.onAuthStateChanged(async userAuth => {
-     if (userAuth) {
-       //we make sure we are passing back the userRef object
-       //checking to see if snapshot has changed
-       const userRef = await createUserProfileDocument(userAuth);
+    const { setCurrentUser, collectionsArray } = this.props;
 
-//subscribe-or listen to userRef
-       userRef.onSnapshot(snapShot => {
-          // console.log(snapShot.data());
-          //don't just LOG snapShot, we need to extract exact DATA. listed below
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+      if (userAuth) {
+        const userRef = await createUserProfileDocument(userAuth);
+
+        userRef.onSnapshot(snapShot => {
           setCurrentUser({
-              id: snapShot.id,
-              ...snapShot.data()
-            })
+            id: snapShot.id,
+            ...snapShot.data()
           });
-     }
-       setCurrentUser(userAuth)
-     //^^equivalent to null. we need this just in case user logs out
-    })
+        });
+      }
+
+      setCurrentUser(userAuth);
+      addCollectionAndDocuments('collections', collectionsArray.map(({title, items}) => ({title, items})//creates new collections in firebase with items inside
+      ));
+    });
   }
 
   componentWillUnmount() {
     this.unsubscribeFromAuth();
   }
-  //will close the subscription not listen to any more event fires from user
 
-  render () {
-      return (
-    <div>
-      <Header />
-      <Switch>
-      <Route exact path='/' component={HomePage} />
-      <Route path='/shop' component={ShopPage} />
-      <Route exact path='/checkout' component={CheckoutPage} />
-      <Route exact path='/signin' 
-              render={() => 
+  render() {
+    return (
+      <div>
+        <Header />
+        <Switch>
+          <Route exact path='/' component={HomePage} />
+          <Route path='/shop' component={ShopPage} />
+          <Route exact path='/checkout' component={CheckoutPage} />
+          <Route
+            exact
+            path='/signin'
+            render={() =>
               this.props.currentUser ? (
-              <Redirect to='/' />
+                <Redirect to='/' />
               ) : (
-              <SignInAndSignUpPage />
+                <SignInAndSignUpPage />
               )
             }
-            />
-      </Switch>
-    </div>
+          />
+        </Switch>
+      </div>
     );
   }
 }
 
-const mapStateToProps = createStructuredSelector ({
-  currentUser: selectCurrentUser
-})
+const mapStateToProps = createStructuredSelector({
+  currentUser: selectCurrentUser,
+  collectionsArray : selectCollectionsForPreview
+});
 
 const mapDispatchToProps = dispatch => ({
   setCurrentUser: user => dispatch(setCurrentUser(user))
-})
+});
+
 export default connect(
   mapStateToProps,
-  mapDispatchToProps)(App);
+  mapDispatchToProps
+)(App);
