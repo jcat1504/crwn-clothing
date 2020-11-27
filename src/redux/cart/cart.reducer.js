@@ -34,6 +34,11 @@ const cartReducer = (state = INITIAL_STATE, action) => {
                         //remember that filter returns an array that is TRUE. if it is falsy, it will not return the item on page
                     )
                 };
+            case CartActionTypes.CLEAR_CART: 
+                return {
+                    ...state,
+                    cartItems: []
+                }
             default:
                 return state;
     }
